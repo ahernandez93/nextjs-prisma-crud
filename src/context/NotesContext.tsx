@@ -1,14 +1,17 @@
 'use client';
 
 import { createContext, useState, useContext } from "react";
-import { Note, NoteFormData } from "@/interfaces/Note";
+import { NoteFormData, UpdateNoteData } from "@/interfaces/Note";
+import { Note } from "@prisma/client";
 
 export type NotesContextType = {
     notes: Note[];
     loadNotes: () => Promise<void>;
     createNote: (note: NoteFormData) => Promise<void>;
     deleteNote: (id: number) => Promise<void>;
-    // setNotes: (notes: Note[]) => void;
+    selectedNote: Note | null;
+    setSelectedNote: (note: Note | null) => void;
+    updateNote: (id: number, note: UpdateNoteData) => Promise<void>;
 };
 
 export const NotesContext = createContext<NotesContextType>({
@@ -16,7 +19,9 @@ export const NotesContext = createContext<NotesContextType>({
     loadNotes: async () => { },
     createNote: async () => { },
     deleteNote: async () => { },
-    // setNotes: () => { }
+    selectedNote: null,
+    setSelectedNote: () => { },
+    updateNote: async () => { }
 });
 
 export const useNotes = () => {
@@ -29,6 +34,7 @@ export const useNotes = () => {
 
 export const NotesProvider = ({ children }: { children: React.ReactNode }) => {
     const [notes, setNotes] = useState<Note[]>([]);
+    const [selectedNote, setSelectedNote] = useState<Note | null>(null);
 
     async function loadNotes() {
         const response = await fetch('/api/notes');
@@ -76,8 +82,35 @@ export const NotesProvider = ({ children }: { children: React.ReactNode }) => {
         setNotes(notes.filter(note => note.id !== deletedNote.id));
     }
 
+    async function updateNote(id: number, note: UpdateNoteData) {
+        const response = await fetch(`/api/notes/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(note)
+        });
+
+        if (!response.ok) {
+            console.error('Failed to update note');
+            return;
+        }
+        const updatedNote = await response.json();
+        setNotes(notes.map(note => note.id === updatedNote.id ? updatedNote : note));
+    }
+
     return (
-        <NotesContext.Provider value={{ notes, loadNotes, createNote, deleteNote }}>
+        <NotesContext.Provider
+            value={{
+                notes,
+                loadNotes,
+                createNote,
+                deleteNote,
+                selectedNote,
+                setSelectedNote,
+                updateNote
+            }}
+        >
             {children}
         </NotesContext.Provider>
     );

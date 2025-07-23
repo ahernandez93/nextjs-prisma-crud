@@ -3,7 +3,7 @@
 import NoteForm from "@/components/NoteForm";
 import { useNotes } from "@/context/NotesContext";
 import { useEffect } from "react";
-import { Note } from "@/interfaces/Note";
+import { Note } from "@prisma/client";
 import NoteCard from "@/components/NoteCard";
 
 function HomePage() {

@@ -1,8 +1,6 @@
-export type Note = {
-    id: number;
-    title: string;
-    content: string;
-}
+import { Note } from "@prisma/client";
 
-export type NoteFormData = Omit<Note, 'id'>;
+export type NoteFormData = Omit<Note, 'id' | 'createdAt' | 'updatedAt'>;
+
+export type UpdateNoteData = Partial<NoteFormData>;
 
